@@ -8,7 +8,7 @@ class LogisticRegression:
         self.tol = tol
         self.eta = eta
         self.max_iterations = max_iterations
-        self.prev_cost = 0
+        self.prev_cost = np.inf 
     
     def fit(self, X, y): 
         n_samples, _ = X.shape
@@ -19,11 +19,11 @@ class LogisticRegression:
         for i in range(self.max_iterations):
             y_predicted = self.predict_proba(X)
             
-            correct = (y_predicted - y)
+            errors = (y_predicted - y)
             norm_gradient = 1 / n_samples
             
-            self.weights -= self.eta * norm_gradient * X.T.dot(correct)
-            self.bias -= self.eta * norm_gradient * np.sum(correct)
+            self.weights -= self.eta * norm_gradient * X.T.dot(errors)
+            self.bias -= self.eta * norm_gradient * np.sum(errors)
 
             cost = (-y.dot(np.log(y_predicted)) - ((1 - y).dot(np.log(1 - y_predicted))))
             if i > 0 and abs(self.prev_cost - cost) < self.tol:
