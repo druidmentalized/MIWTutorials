@@ -1,22 +1,17 @@
 import numpy as np
 from sklearn.metrics import mean_squared_error, r2_score
 
-from Project3.nn.enums import Activation, WeightInit, UpdateMode
-
-# Activation functions
-def relu(x): return np.maximum(0, 1 * x)
-def relu_derivative(x): return np.where(x > 0, 1, np.where(x < 0, 0, 0.5))
-
-def tanh(x): return np.tanh(x)
-def tanh_derivative(x): return 1.0 - np.tanh(x) ** 2
+from Project3.nn.activation import Activation
+from Project3.nn.enums import UpdateMode
+from Project3.nn.weight_init import WeightInit
 
 
 class NeuralNetworkRegression:
     def __init__(self, input_size, hidden_size, output_size,
-                 activation=Activation.TANH,
-                 weight_init=WeightInit.STANDARD,
-                 update_mode=UpdateMode.BATCH,
-                 random_state=67):
+                 activation = Activation.TANH,
+                 weight_init = WeightInit.STANDARD,
+                 update_mode = UpdateMode.BATCH,
+                 random_state = 67):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
@@ -25,6 +20,7 @@ class NeuralNetworkRegression:
         self.update_mode = update_mode
         self.random_state = random_state
 
+        self.rgen = np.random.default_rng(self.random_state)
         self.weights_input_hidden, self.weights_hidden_output = self._init_weights()
 
         # Bias initialization for hidden and output layers
@@ -36,24 +32,18 @@ class NeuralNetworkRegression:
         self.history_r2 = []
 
     def _init_weights(self):
-        rgen = np.random.default_rng(self.random_state)
-
-        weights_input_hidden = rgen.standard_normal(size=(self.input_size, self.hidden_size))
-        weights_hidden_output = rgen.standard_normal(size=(self.hidden_size, self.output_size))
-
-        if self.update_mode == WeightInit.HE:
-            weights_input_hidden *= np.sqrt(2.0 / self.input_size)
-            weights_hidden_output *= np.sqrt(2.0 / self.hidden_size)
+        weights_input_hidden = self.weight_init.initialize(self.rgen, self.input_size, self.hidden_size)
+        weights_hidden_output = self.weight_init.initialize(self.rgen, self.hidden_size, self.output_size)
 
         return weights_input_hidden, weights_hidden_output
 
 
     def forward(self, X):
         hidden_input = np.dot(X, self.weights_input_hidden) + self.bias_hidden
-        hidden_output = tanh(hidden_input) if self.activation == Activation.TANH else relu(hidden_input)
+        hidden_output = self.activation.forward(hidden_input)
 
         output_input = np.dot(hidden_output, self.weights_hidden_output) + self.bias_output
-        return tanh(output_input) if self.activation == Activation.TANH else relu(output_input)
+        return self.activation.forward(output_input)
 
     def backward(self, X, y, output, learning_rate, reg_lambda):
         output_error = y - output
