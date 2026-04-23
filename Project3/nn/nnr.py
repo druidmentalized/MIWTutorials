@@ -1,19 +1,31 @@
 import numpy as np
 from sklearn.metrics import mean_squared_error, r2_score
 
+from Project3.nn.enums import Activation, WeightInit, UpdateMode
+
+# Activation functions
+def relu(x): return np.maximum(0, 1 * x)
+def relu_derivative(x): return np.where(x > 0, 1, np.where(x < 0, 0, 0.5))
+
+def tanh(x): return np.tanh(x)
+def tanh_derivative(x): return 1.0 - np.tanh(x) ** 2
+
+
 class NeuralNetworkRegression:
-    def __init__(self, input_size, hidden_size, output_size, ):
+    def __init__(self, input_size, hidden_size, output_size,
+                 activation=Activation.TANH,
+                 weight_init=WeightInit.STANDARD,
+                 update_mode=UpdateMode.BATCH,
+                 random_state=67):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
+        self.activation = activation
+        self.weight_init = weight_init
+        self.update_mode = update_mode
+        self.random_state = random_state
 
-        # Weight initialization for input-hidden and hidden-output layers
-        self.weights_input_hidden = np.random.randn(input_size, hidden_size)
-        self.weights_hidden_output = np.random.randn(hidden_size, output_size)
-
-        # He (Kaiming) initialization - recommended for ReLU activation
-        # self.weights_input_hidden = np.random.randn(input_size, hidden_size) * np.sqrt(2.0 / input_size)
-        # self.weights_hidden_output = np.random.randn(hidden_size, output_size) * np.sqrt(2.0 / hidden_size)
+        self.weights_input_hidden, self.weights_hidden_output = self._init_weights()
 
         # Bias initialization for hidden and output layers
         self.bias_hidden = np.zeros(hidden_size)
@@ -23,35 +35,35 @@ class NeuralNetworkRegression:
         self.history_mse = []
         self.history_r2 = []
 
-    def relu(self, x):
-        return np.maximum(0, 1 * x)
+    def _init_weights(self):
+        rgen = np.random.default_rng(self.random_state)
 
-    def relu_derivative(self, x):
-        return np.where(x > 0, 1, np.where(x < 0, 0, 0.5))
+        weights_input_hidden = rgen.standard_normal(size=(self.input_size, self.hidden_size))
+        weights_hidden_output = rgen.standard_normal(size=(self.hidden_size, self.output_size))
 
-    def tanh(self, x):
-        return np.tanh(x)
+        if self.update_mode == WeightInit.HE:
+            weights_input_hidden *= np.sqrt(2.0 / self.input_size)
+            weights_hidden_output *= np.sqrt(2.0 / self.hidden_size)
 
-    def tanh_derivative(self, x):
-        return 1.0 - np.tanh(x) ** 2
+        return weights_input_hidden, weights_hidden_output
+
 
     def forward(self, X):
         hidden_input = np.dot(X, self.weights_input_hidden) + self.bias_hidden
-        hidden_output = self.relu(hidden_input)
-        # hidden_output = self.tanh(hidden_input)
+        hidden_output = tanh(hidden_input) if self.activation == Activation.TANH else relu(hidden_input)
+
         output_input = np.dot(hidden_output, self.weights_hidden_output) + self.bias_output
-        return self.relu(output_input)
-        # return self.tanh(output_input)
+        return tanh(output_input) if self.activation == Activation.TANH else relu(output_input)
 
     def backward(self, X, y, output, learning_rate, reg_lambda):
         output_error = y - output
 
-        hidden_output = self.relu(np.dot(X, self.weights_input_hidden) + self.bias_hidden)
+        hidden_output = relu(np.dot(X, self.weights_input_hidden) + self.bias_hidden)
 
         gradient_hidden_output = np.dot(hidden_output.T, output_error)
 
         hidden_error = np.dot(output_error, self.weights_hidden_output.T)
-        hidden_error *= self.relu_derivative(hidden_output)
+        hidden_error *= relu_derivative(hidden_output)
         # hidden_error *= self.tanh_derivative(hidden_output)
 
         gradient_input_hidden = np.dot(X.T, hidden_error)
@@ -82,3 +94,4 @@ class NeuralNetworkRegression:
             if r2 >= 0.95:
                 print("Training stopped, R^2 score reached 0.95")
                 break
+
