@@ -20,7 +20,7 @@ def normalize_data(split_data):
     X_test = scaler_X.transform(X_test)
 
     scaler_y = MinMaxScaler()
-    y_train = scaler_y.fit_transform(y_train.reshape(-1, 1)).ravel()
-    y_test = scaler_y.transform(y_test.reshape(-1, 1)).ravel()
+    y_train = scaler_y.fit_transform(y_train.reshape(-1, 1))
+    y_test = scaler_y.transform(y_test.reshape(-1, 1))
 
     return X_train, X_test, y_train, y_test

@@ -16,7 +16,7 @@ class Activation(Enum):
         lambda x: 1.0 - np.tanh(x) ** 2
     )
 
-    def __init__(self, name, forward, derivative):
-        self.name = name
+    def __init__(self, label, forward, derivative):
+        self.label = label
         self.forward = forward
         self.derivative = derivative
