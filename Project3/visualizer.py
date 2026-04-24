@@ -1,14 +1,12 @@
-import numpy as np
-import matplotlib.pyplot as plt
 from datetime import datetime
-from sklearn.metrics import mean_squared_error, r2_score
+
+import matplotlib.pyplot as plt
 
 
 def plot_regression_results(
     model,
     X_train, y_train,
     X_test, y_test,
-    title="Neural Network Regression",
     save=False
 ):
     # Predictions
@@ -48,7 +46,6 @@ def plot_regression_results(
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.title('Predictions vs Data')
-    plt.figtext(0.5, 0.90, f"Neurons={model.hidden_size}, Epochs={len(model.history_r2)}", ha="center", fontsize=9)
 
     plt.tight_layout()
     plt.legend()

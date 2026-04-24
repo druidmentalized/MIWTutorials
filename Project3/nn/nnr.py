@@ -22,7 +22,7 @@ class NeuralNetworkRegression:
         self.output_size = output_size
         self.activation = activation
         self.weight_init = weight_init
-        self.update_mode = train_mode
+        self.train_mode = train_mode
         self.random_state = random_state
 
         self.rgen = np.random.default_rng(self.random_state)
@@ -56,7 +56,6 @@ class NeuralNetworkRegression:
         hidden_error *= self.activation.derivative(hidden_output)
         gradient_input_hidden = np.dot(X.T, hidden_error)
 
-        # Weight and bias updates with L2 regularization
         self.weights_hidden_output += (gradient_hidden_output - reg_lambda * self.weights_hidden_output) * learning_rate
         self.weights_input_hidden += (gradient_input_hidden - reg_lambda * self.weights_input_hidden) * learning_rate
 
@@ -64,7 +63,7 @@ class NeuralNetworkRegression:
         self.bias_hidden += np.sum(hidden_error, axis=0) * learning_rate
 
     def _execute_training(self, X, y, learning_rate, reg_lambda, batch_size):
-        return self.update_mode.execute(self, X, y, learning_rate, reg_lambda, batch_size)
+        return self.train_mode.execute(self, X, y, learning_rate, reg_lambda, batch_size)
 
     def _update_stats(self, y, output):
         r2 = r2_score(y, output)
@@ -84,6 +83,6 @@ class NeuralNetworkRegression:
             if epoch % (epochs // 10) == 0:
                 print(f"{(epoch / epochs) * 100}%")
 
-            if r2 >= r2_max:
+            if 0 < r2_max <= 1 and r2 >= r2_max:
                 print(f"Training stopped, R^2 score reached {r2_max}")
                 break
