@@ -1,19 +1,20 @@
 from keras.layers import Input, Conv2D, MaxPooling2D, Dropout, Flatten, Dense, BatchNormalization, Activation
 from keras.models import Model
 
-NUM_CLASSES  = 10
-INPUT_SHAPE  = (32, 32, 3)
+NUM_CLASSES = 10
+INPUT_SHAPE = (32, 32, 3)
 FILTERS_START = 32
 DROPOUT_START = 0.5
-DROPOUT_STEP  = 0.05
+DROPOUT_STEP = 0.05
+
 
 def build_model(blocks_count: int, batch_norm: bool = False) -> Model:
     inputs = Input(shape=INPUT_SHAPE)
 
     x = inputs
     for i in range(blocks_count):
-        filters  = FILTERS_START * (2 ** i)
-        dropout  = DROPOUT_START - (DROPOUT_STEP * i)
+        filters = FILTERS_START * (2 ** i)
+        dropout = DROPOUT_START - (DROPOUT_STEP * i)
 
         x = Conv2D(filters, kernel_size=(3, 3), padding='same')(x)
         if batch_norm: x = BatchNormalization()(x)
@@ -37,8 +38,10 @@ def build_model(blocks_count: int, batch_norm: bool = False) -> Model:
 def build_model_a() -> Model:
     return build_model(blocks_count=1)
 
+
 def build_model_b(blocks_count=3) -> Model:
     return build_model(blocks_count=blocks_count)
 
-def build_model_c(blocks_count=3) -> Model:
+
+def build_model_c(blocks_count=5) -> Model:
     return build_model(blocks_count=blocks_count, batch_norm=True)
