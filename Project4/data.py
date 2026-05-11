@@ -1,5 +1,6 @@
+import tensorflow as tf
+from keras import layers
 from keras.datasets.cifar10 import load_data as load_cifar10
-from keras.src.legacy.preprocessing.image import ImageDataGenerator
 from keras.utils import to_categorical
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -35,12 +36,17 @@ def load_data(rs: int):
     return (x_train, y_train), (x_val, y_val), (x_test, y_test)
 
 
-def get_augmentor(x_train):
-    augmentor = ImageDataGenerator(
-        rotation_range=15,
-        horizontal_flip=True,
-        width_shift_range=0.1,
-        height_shift_range=0.1
+def get_dataset(x_train, y_train, batch_size: int = 64) -> tf.data.Dataset:
+    augmentation = tf.keras.Sequential([
+        layers.RandomFlip('horizontal'),
+        layers.RandomRotation(15 / 360),
+        layers.RandomTranslation(0.1, 0.1),
+    ])
+    dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+    dataset = dataset.shuffle(len(x_train), reshuffle_each_iteration=True)
+    dataset = dataset.batch(batch_size)
+    dataset = dataset.map(
+        lambda x, y: (augmentation(x, training=True), y),
+        num_parallel_calls=tf.data.AUTOTUNE
     )
-    augmentor.fit(x_train)
-    return augmentor
+    return dataset.prefetch(tf.data.AUTOTUNE)
