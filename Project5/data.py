@@ -17,9 +17,6 @@ def load_split_data(
     df = _load_clean(path)
     df_train, df_val, df_test = _chronological_split(df, train_frac, val_frac)
 
-    # Fit on all data (log1p domain) so that test prices, which are much
-    # higher than training prices on a long-running stock like AMZN, still
-    # land inside [0, 1] for the model.
     scaler_y = MinMaxScaler()
     scaler_y.fit(np.log1p(df[["Close"]].values))
 
@@ -149,7 +146,6 @@ def scale_multi_features(
     y_val = scaler_y.transform(np.log1p(df_val[[target_col]].values)).flatten()
     y_test = scaler_y.transform(np.log1p(df_test[[target_col]].values)).flatten()
 
-    # Keep X[Close] and y on identical scale (Homework cell 21 invariant).
     close_idx = feature_cols.index(target_col)
     X_train[:, close_idx] = y_train
     X_val[:, close_idx] = y_val

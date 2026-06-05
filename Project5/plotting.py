@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def plan_time_series(df: pd.DataFrame, target_col: str = "Close") -> None:
+def plot_time_series(df: pd.DataFrame, target_col: str = "Close") -> None:
     plt.figure()
     plt.plot(df["Date"], df[target_col], label=target_col)
     plt.title(f"AMZN {target_col} price over time")
@@ -14,7 +14,7 @@ def plan_time_series(df: pd.DataFrame, target_col: str = "Close") -> None:
     plt.show()
 
 
-def plan_trend(df: pd.DataFrame, target_col: str = "Close") -> None:
+def plot_trend(df: pd.DataFrame, target_col: str = "Close") -> None:
     ma_20 = df[target_col].rolling(window=20).mean()
     ma_100 = df[target_col].rolling(window=100).mean()
 
@@ -31,7 +31,7 @@ def plan_trend(df: pd.DataFrame, target_col: str = "Close") -> None:
     plt.show()
 
 
-def plan_variability(df: pd.DataFrame, target_col: str = "Close") -> None:
+def plot_variability(df: pd.DataFrame, target_col: str = "Close") -> None:
     rolling_std = df[target_col].rolling(window=30).std()
 
     plt.figure()
@@ -49,7 +49,7 @@ def plan_variability(df: pd.DataFrame, target_col: str = "Close") -> None:
     print(f"Peak volatility: {df['Date'].iloc[peak_idx].date()}, value: {rolling_std.max():.4f}")
 
 
-def plan_possible_seasonality(df: pd.DataFrame, target_col: str = "Close") -> None:
+def plot_possible_seasonality(df: pd.DataFrame, target_col: str = "Close") -> None:
     month = df["Date"].dt.month
     monthly_mean = df.groupby(month)[target_col].mean()
     monthly_std = df.groupby(month)[target_col].std()
@@ -112,4 +112,15 @@ def plot_predictions(dates, true, pred, title: str, pred_label: str) -> None:
     plt.ylabel("Close price (USD)")
     plt.legend()
     plt.grid(True)
+    plt.show()
+
+
+def plot_model_comparison(results: pd.DataFrame, metric: str = "MSE") -> None:
+    plt.figure()
+    plt.bar(results["Model"], results[metric])
+    plt.title(f"Model comparison: {metric}")
+    plt.ylabel(metric)
+    plt.yscale("log")
+    plt.xticks(rotation=20)
+    plt.grid(True, which="both", axis="y")
     plt.show()
